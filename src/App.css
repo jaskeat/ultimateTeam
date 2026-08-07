@@ -545,6 +545,28 @@
   gap: 10px;
 }
 
+.position-filter-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.position-filter-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: rgba(244, 247, 251, 0.78);
+  font-size: 0.86rem;
+}
+
+.position-filter-header strong {
+  color: #fff;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .builder-action,
 .builder-mini-button,
 .favorite-chip,
@@ -836,6 +858,36 @@
 .collection-header p {
   margin: 0;
   color: rgba(244, 247, 251, 0.72);
+}
+
+.position-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.position-filter-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 251, 0.88);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.position-filter-btn.active {
+  background: linear-gradient(135deg, #d8ff67, #7ad957);
+  border-color: transparent;
+  color: #07110a;
+  font-weight: 700;
+}
+
+.filter-summary {
+  margin: -4px 0 0;
+  color: rgba(244, 247, 251, 0.66);
+  font-size: 0.86rem;
 }
 
 .favorite-strip {

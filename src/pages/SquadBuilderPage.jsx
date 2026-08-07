@@ -37,6 +37,25 @@ const formationRows = [
 ]
 
 const squadSlots = formationRows.flatMap((row) => row.slots)
+const POSITION_FILTERS = [
+  { value: 'all', label: 'All positions' },
+  { value: 'GK', label: 'GK' },
+  { value: 'LB', label: 'LB' },
+  { value: 'LCB', label: 'LCB' },
+  { value: 'CB', label: 'CB' },
+  { value: 'RCB', label: 'RCB' },
+  { value: 'RB', label: 'RB' },
+  { value: 'LWB', label: 'LWB' },
+  { value: 'RWB', label: 'RWB' },
+  { value: 'CDM', label: 'CDM' },
+  { value: 'CM', label: 'CM' },
+  { value: 'CAM', label: 'CAM' },
+  { value: 'LM', label: 'LM' },
+  { value: 'RM', label: 'RM' },
+  { value: 'LW', label: 'LW' },
+  { value: 'RW', label: 'RW' },
+  { value: 'ST', label: 'ST' },
+]
 const FAVORITE_PLAYERS_STORAGE_KEY = 'ut-favorite-players-v1'
 const LINEUP_STORAGE_KEY = 'ut-team-lineup-v1'
 const TEAM_NAME_STORAGE_KEY = 'ut-team-name-v1'
@@ -114,6 +133,7 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
   const [lineup, setLineup] = useState(() => readStorageValue(LINEUP_STORAGE_KEY, {}))
   const [teamName, setTeamName] = useState(() => readStorageValue(TEAM_NAME_STORAGE_KEY, 'My Ultimate XI'))
   const [selectedSlotId, setSelectedSlotId] = useState('st')
+  const [selectedPosition, setSelectedPosition] = useState('all')
 
   const packedPlayersList = useMemo(() => {
     return Object.values(packedPlayers).sort(comparePlayers)
@@ -131,6 +151,22 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
   const favoritePlayers = useMemo(() => {
     return packedPlayersList.filter((player) => favoritePlayerIdSet.has(player.id))
   }, [favoritePlayerIdSet, packedPlayersList])
+
+  const filteredPackedPlayers = useMemo(() => {
+    if (selectedPosition === 'all') {
+      return packedPlayersList
+    }
+
+    return packedPlayersList.filter((player) => player.position === selectedPosition)
+  }, [packedPlayersList, selectedPosition])
+
+  const filteredFavoritePlayers = useMemo(() => {
+    if (selectedPosition === 'all') {
+      return favoritePlayers
+    }
+
+    return favoritePlayers.filter((player) => player.position === selectedPosition)
+  }, [favoritePlayers, selectedPosition])
 
   const lineupCards = useMemo(() => {
     return squadSlots.map((slot) => ({
@@ -171,6 +207,7 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
     setFavoritePlayerIds([])
     setLineup({})
     setSelectedSlotId('st')
+    setSelectedPosition('all')
   }, [historyResetToken])
 
   const toggleFavoritePlayer = (playerId) => {
@@ -213,7 +250,7 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
   }
 
   const autoBuildTeam = () => {
-    const orderedPlayers = uniquePlayers([...favoritePlayers, ...packedPlayersList]).sort(comparePlayers)
+    const orderedPlayers = uniquePlayers([...filteredFavoritePlayers, ...filteredPackedPlayers]).sort(comparePlayers)
 
     setLineup(() => {
       const nextLineup = {}
@@ -272,6 +309,25 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
             <button type="button" className="builder-action secondary" onClick={clearTeam} disabled={filledLineupPlayers.length === 0}>
               Clear XI
             </button>
+          </div>
+
+          <div className="position-filter-panel">
+            <div className="position-filter-header">
+              <span>Filter by position</span>
+              <strong>{selectedPosition === 'all' ? 'Showing all positions' : selectedPosition}</strong>
+            </div>
+            <div className="position-filter" aria-label="Player position filter">
+              {POSITION_FILTERS.map((position) => (
+                <button
+                  key={position.value}
+                  type="button"
+                  className={`position-filter-btn ${selectedPosition === position.value ? 'active' : ''}`}
+                  onClick={() => setSelectedPosition(position.value)}
+                >
+                  {position.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
@@ -380,9 +436,13 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
             </p>
           </div>
 
+          <p className="filter-summary">
+            Showing {filteredPackedPlayers.length} players{selectedPosition === 'all' ? '' : ` in ${selectedPosition}`}
+          </p>
+
           <div className="favorite-strip" aria-label="Favourite shortlist">
-            {favoritePlayers.length > 0 ? (
-              favoritePlayers.map((player) => (
+            {filteredFavoritePlayers.length > 0 ? (
+              filteredFavoritePlayers.map((player) => (
                 <button key={player.id} type="button" className="favorite-chip" onClick={() => assignPlayerToSlot(player)}>
                   <span>{player.name}</span>
                   <strong>{player.overall}</strong>
@@ -394,10 +454,10 @@ function SquadBuilderPage({ packedPlayers, playerLoadError, historyResetToken })
           </div>
 
           <div className="collection-scroll">
-            {packedPlayersList.length === 0 ? (
+            {filteredPackedPlayers.length === 0 ? (
               <p className="catalog-status">Open packs to start building your squad from real pulls.</p>
             ) : (
-              packedPlayersList.map((player) => {
+              filteredPackedPlayers.map((player) => {
                 const isFavourite = favoritePlayerIdSet.has(player.id)
                 const isOnPitch = lineupCards.some((slot) => slot.player?.id === player.id)
 
